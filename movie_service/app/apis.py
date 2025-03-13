@@ -17,3 +17,10 @@ fake_movie_db = [
 @movies.get("/", status_code=200)
 async def get_all_movies() -> list[Movie]:
     return fake_movie_db
+
+
+@movies.post("/", status_code=201)
+async def create_movie(payload: Movie) -> Movie:
+    movie = payload.model_dump()
+    fake_movie_db.append(movie)
+    return movie
