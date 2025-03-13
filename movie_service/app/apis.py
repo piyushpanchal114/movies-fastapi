@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from .models import Movie
 
 
@@ -24,3 +24,24 @@ async def create_movie(payload: Movie) -> Movie:
     movie = payload.model_dump()
     fake_movie_db.append(movie)
     return movie
+
+
+@movies.put('/{id}')
+async def update_movie(id: int, payload: Movie):
+    movie = payload.model_dump()
+    movies_length = len(fake_movie_db)
+    if 0 <= id < movies_length:
+        fake_movie_db[id] = movie
+        return None
+    raise HTTPException(status_code=404,
+                        detail="Movie with given id not found")
+
+
+@movies.delete('/{id}')
+async def delete_movie(id: int):
+    movies_length = len(fake_movie_db)
+    if 0 <= id < movies_length:
+        del fake_movie_db[id]
+        return None
+    raise HTTPException(status_code=404,
+                        detail="Movie with given id not found")
