@@ -18,14 +18,14 @@ fake_movie_db = [
 ]
 
 
-@movies.get("/", status_code=status.HTTP_200_OK)
+@movies.get("movies/", status_code=status.HTTP_200_OK)
 async def get_all_movies(
         session: AsyncSession = Depends(get_db_session)) -> list[Movie]:
     movies = await session.scalars(select(models.Movie))
     return movies
 
 
-@movies.post("/", status_code=status.HTTP_201_CREATED)
+@movies.post("movies/", status_code=status.HTTP_201_CREATED)
 async def create_movie(
      payload: Movie, session: AsyncSession = Depends(get_db_session)) -> Movie:
     movie = models.Movie(**payload.model_dump())
@@ -35,7 +35,7 @@ async def create_movie(
     return movie
 
 
-@movies.put('/{id}')
+@movies.put('movies/{id}')
 async def update_movie(id: int, payload: Movie):
     movie = payload.model_dump()
     movies_length = len(fake_movie_db)
