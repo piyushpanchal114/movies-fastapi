@@ -1,7 +1,8 @@
+import uuid
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from .schemas import Movie
+from .schemas import Movie, MovieList
 from .db import get_db_session
 from . import models
 
@@ -18,14 +19,14 @@ fake_movie_db = [
 ]
 
 
-@movies.get("movies/", status_code=status.HTTP_200_OK)
+@movies.get("/movies/", status_code=status.HTTP_200_OK)
 async def get_all_movies(
-        session: AsyncSession = Depends(get_db_session)) -> list[Movie]:
+        session: AsyncSession = Depends(get_db_session)) -> list[MovieList]:
     movies = await session.scalars(select(models.Movie))
     return movies
 
 
-@movies.post("movies/", status_code=status.HTTP_201_CREATED)
+@movies.post("/movies/", status_code=status.HTTP_201_CREATED)
 async def create_movie(
      payload: Movie, session: AsyncSession = Depends(get_db_session)) -> Movie:
     movie = models.Movie(**payload.model_dump())
@@ -35,8 +36,20 @@ async def create_movie(
     return movie
 
 
-@movies.put('movies/{id}')
-async def update_movie(id: int, payload: Movie):
+@movies.get("/movies/{id}", status_code=status.HTTP_200_OK)
+async def get_movie(
+     id: uuid.UUID, session: AsyncSession = Depends(get_db_session)) -> Movie:
+    movie = await session.get(models.Movie, id)
+    if movie is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Movie does not exists."
+        )
+    return movie
+
+
+@movies.put('/movies/{id}')
+async def update_movie(id: uuid.UUID, payload: Movie):
     movie = payload.model_dump()
     movies_length = len(fake_movie_db)
     if 0 <= id < movies_length:
