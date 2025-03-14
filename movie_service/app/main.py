@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from .apis import movies
 
+
 app = FastAPI()
 app.include_router(movies)
 
