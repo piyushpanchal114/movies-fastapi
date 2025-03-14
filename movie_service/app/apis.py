@@ -25,10 +25,13 @@ async def get_all_movies(
     return movies
 
 
-@movies.post("/", status_code=201)
-async def create_movie(payload: Movie) -> Movie:
-    movie = payload.model_dump()
-    fake_movie_db.append(movie)
+@movies.post("/", status_code=status.HTTP_201_CREATED)
+async def create_movie(
+     payload: Movie, session: AsyncSession = Depends(get_db_session)) -> Movie:
+    movie = models.Movie(**payload.model_dump())
+    session.add(movie)
+    await session.commit()
+    await session.refresh(movie)
     return movie
 
 
