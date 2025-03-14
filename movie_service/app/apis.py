@@ -1,5 +1,9 @@
-from fastapi import APIRouter, HTTPException
-from .models import Movie
+from fastapi import APIRouter, HTTPException, Depends, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from .schemas import Movie
+from .db import get_db_session
+from . import models
 
 
 movies = APIRouter()
@@ -14,9 +18,11 @@ fake_movie_db = [
 ]
 
 
-@movies.get("/", status_code=200)
-async def get_all_movies() -> list[Movie]:
-    return fake_movie_db
+@movies.get("/", status_code=status.HTTP_200_OK)
+async def get_all_movies(
+        session: AsyncSession = Depends(get_db_session)) -> list[Movie]:
+    movies = await session.scalars(select(models.Movie))
+    return movies
 
 
 @movies.post("/", status_code=201)
