@@ -1,19 +1,37 @@
-from datetime import timezone
-from sqlalchemy import Column, Integer, String, JSON, DateTime
-from sqlalchemy.orm import DeclarativeBase
+import asyncio
+import logging
+from typing import AsyncGenerator
+from sqlalchemy import exc
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
+from models import Base
 
 
-class Base(DeclarativeBase):
-    pass
+logger = logging.getLogger(__name__)
+
+DB_URL = "postgresql+psycopg://admin:devtoolssecret@172.17.0.1:5433/movies"
 
 
-class Movie(Base):
-    """Movie Schema"""
-    __tablename__ = "movie"
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    engine = create_async_engine(DB_URL)
+    factory = async_sessionmaker(engine)
+    async with factory() as session:
+        try:
+            yield session
+            session.commit()
+        except exc.SQLAlchemyError as error:
+            print("sql alchemy error", error)
+            await session.rollback()
+            raise
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), unique=True, nullable=False)
-    plot = Column(String(1000), nullable=True)
-    genres = Column(JSON, default=list)
-    casts = Column(JSON, default=list)
-    created_at = Column(DateTime, default=timezone.utc)
+
+async def migrate_tables() -> None:
+    logger.info("Start migrating")
+    engine = create_async_engine(DB_URL)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Done migrating")
+
+
+if __name__ == "__main__":
+    asyncio.run(migrate_tables())
