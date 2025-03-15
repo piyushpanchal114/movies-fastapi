@@ -69,11 +69,16 @@ async def update_movie(
     return movie
 
 
-@movies.delete('/{id}')
-async def delete_movie(id: int):
-    movies_length = len(fake_movie_db)
-    if 0 <= id < movies_length:
-        del fake_movie_db[id]
+@movies.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_movie(
+    id: uuid.UUID,
+        session: AsyncSession = Depends(get_db_session)) -> None:
+    res = await session.execute(select(models.Movie).filter(
+        models.Movie.pk == id))
+    movie = res.scalars().first()
+    if movie is not None:
+        await session.delete(movie)
+        await session.commit()
         return None
     raise HTTPException(status_code=404,
                         detail="Movie with given id not found")
