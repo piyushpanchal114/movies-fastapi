@@ -18,7 +18,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     async with factory() as session:
         try:
             yield session
-            session.commit()
+            await session.commit()
         except exc.SQLAlchemyError as error:
             print("sql alchemy error", error)
             await session.rollback()
