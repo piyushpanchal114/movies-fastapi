@@ -49,14 +49,24 @@ async def get_movie(
 
 
 @movies.put('/movies/{id}')
-async def update_movie(id: uuid.UUID, payload: Movie):
-    movie = payload.model_dump()
-    movies_length = len(fake_movie_db)
-    if 0 <= id < movies_length:
-        fake_movie_db[id] = movie
-        return None
-    raise HTTPException(status_code=404,
-                        detail="Movie with given id not found")
+async def update_movie(
+    id: uuid.UUID, payload: Movie,
+        session: AsyncSession = Depends(get_db_session)) -> Movie:
+
+    res = await session.execute(
+        select(models.Movie).filter(models.Movie.pk == id))
+    movie = res.scalars().first()
+    if movie is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Movie not Found")
+    movie_obj = Movie(**payload.model_dump(exclude_unset=True))
+    movie.name = movie_obj.name
+    movie.plot = movie_obj.plot
+    movie.genres = movie_obj.genres
+    movie.casts = movie_obj.casts
+    await session.commit()
+    await session.refresh(movie)
+    return movie
 
 
 @movies.delete('/{id}')
