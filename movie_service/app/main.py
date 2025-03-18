@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from .apis import movies
 
 
-app = FastAPI()
+app = FastAPI(openapi_url="/movies/openapi.json", docs_url="/movies/docs")
 app.include_router(movies)
 
 
