@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from . import models
@@ -24,4 +24,13 @@ async def create_cast(
     session.add(cast)
     await session.commit()
     await session.refresh(cast)
+    return cast
+
+
+@casts.get("/{id}", status_code=status.HTTP_200_OK)
+async def get_cast(session: AsyncSession = Depends(get_db_session)) -> Cast:
+    cast = await session.get(models.Cast, id)
+    if cast is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="cast not found")
     return cast
