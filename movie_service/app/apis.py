@@ -7,7 +7,7 @@ from .db import get_db_session
 from . import models
 
 
-movies = APIRouter()
+movies = APIRouter(prefix="/movies")
 
 fake_movie_db = [
     {
@@ -19,14 +19,14 @@ fake_movie_db = [
 ]
 
 
-@movies.get("/movies/", status_code=status.HTTP_200_OK)
+@movies.get("/", status_code=status.HTTP_200_OK)
 async def get_all_movies(
         session: AsyncSession = Depends(get_db_session)) -> list[MovieList]:
     movies = await session.scalars(select(models.Movie))
     return movies
 
 
-@movies.post("/movies/", status_code=status.HTTP_201_CREATED)
+@movies.post("/", status_code=status.HTTP_201_CREATED)
 async def create_movie(
      payload: Movie, session: AsyncSession = Depends(get_db_session)) -> Movie:
     movie = models.Movie(**payload.model_dump())
@@ -36,7 +36,7 @@ async def create_movie(
     return movie
 
 
-@movies.get("/movies/{id}", status_code=status.HTTP_200_OK)
+@movies.get("/{id}", status_code=status.HTTP_200_OK)
 async def get_movie(
      id: uuid.UUID, session: AsyncSession = Depends(get_db_session)) -> Movie:
     movie = await session.get(models.Movie, id)
@@ -48,7 +48,7 @@ async def get_movie(
     return movie
 
 
-@movies.put('/movies/{id}')
+@movies.put('/{id}')
 async def update_movie(
     id: uuid.UUID, payload: Movie,
         session: AsyncSession = Depends(get_db_session)) -> Movie:
