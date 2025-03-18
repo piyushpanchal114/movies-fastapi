@@ -6,7 +6,7 @@ from .db import get_db_session
 from .schemas import CastList, Cast
 
 
-casts = APIRouter(prefix="casts")
+casts = APIRouter(prefix="/casts")
 
 
 @casts.get("/", status_code=status.HTTP_200_OK)
