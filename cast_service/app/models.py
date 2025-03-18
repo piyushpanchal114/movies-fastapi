@@ -16,4 +16,4 @@ class Cast(Base):
     name: orm.Mapped[str] = orm.mapped_column(
         String(255), nullable=False)
     nationality: orm.Mapped[str] = orm.mapped_column(String(100))
-    created_at: orm.Mapped[datetime] = orm.mapped_column(default=func.now)
+    created_at: orm.Mapped[datetime] = orm.mapped_column(default=func.now())
